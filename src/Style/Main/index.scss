@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+$background-color-primary: #ccc;
+$primary-color: #f3a107;
+$primary-color-light: #c4d829;
+$danger-color: #e43555;
+$grey-dark: #cdcdcd;
+$border-color-regular: #ddd;
+$white: #fff;
+$grey: #9e9e9e;
+$grey-light: #ebdcdc;
+$success-color: green;
+$black: #000;
+$secondary-color: #6c6c6c;
+$info-color: #56a9e0;
+
+$one-pixel: 1px;
+$font_color: #111;
+$font_family: -apple-system, BlinkMacSystemFont, "Segoe UI";
+$body-font-size: 16px;
+$input-border-radius: 4px;
+$info-text-font-size: 14px;
+$input-font-size: 18px;
+
+@mixin enable-scroll-bar {
+  overflow: scroll;
+}
+@mixin heading-typography {
+  font-size: 24px;
+}
+@mixin info-typography {
+  font-size: 20px;
+}
+@mixin flex-no-direction {
+  display: flex;
+}
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+}
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+@mixin body-typography {
+  font-size: 16px;
+}
+@mixin button-typography($normal) {
+  font-size: $normal;
+}

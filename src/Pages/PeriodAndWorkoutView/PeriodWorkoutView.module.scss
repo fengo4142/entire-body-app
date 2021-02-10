@@ -1,0 +1,696 @@
+@import "../../Style/Main";
+
+.main_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.split_view {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow: auto;
+  @include enable-scroll-bar;
+}
+
+.list_area {
+  flex: 1;
+  height: 100%;
+  overflow: auto;
+  // @include enable-scroll-bar;
+}
+
+.search_control {
+  width: 100%;
+  @include flex-row;
+  padding: 1rem;
+}
+
+.search_region {
+  width: 100%;
+  height: 3rem;
+  @include flex-row;
+  transition: 0.3s;
+  border: $one-pixel solid $grey_dark;
+  border-radius: $input-border-radius;
+  overflow: hidden;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+
+  &:focus-within {
+    border-color: $primary-color;
+    box-shadow: 0 0 0.4rem 0 $primary-color;
+  }
+}
+
+.search_query {
+  flex: 1;
+  border-radius: 0.3em;
+  border: none;
+  outline: none;
+  padding: 0.7rem;
+  box-sizing: border-box;
+  transition: 0.3s;
+  @include body-typography;
+  font-size: $info-text-font-size;
+  letter-spacing: $one-pixel;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+}
+
+.search_query_icon_placeholder {
+  font-size: $input-font-size;
+  height: 1rem;
+  width: 1rem;
+  @include flex-column;
+  background-color: transparent;
+  border-right: $one-pixel solid $grey-dark;
+  padding: 1rem 1.5rem;
+}
+.search_query_icon {
+  font-size: 1rem;
+  color: $grey;
+}
+
+.collapse_all_icon {
+  margin: 0 1rem;
+  cursor: pointer;
+
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.nothing_found {
+  width: 100%;
+  height: 100%;
+  @include flex-column;
+}
+
+.nothing_found_icon {
+  font-size: 3rem;
+}
+
+.nothing_found_title {
+  @include body-typography;
+  margin: 1.5em 0 3em 0;
+}
+
+.exe_planner_container {
+  width: 100%;
+  height: 100%;
+  @include flex-column;
+}
+.exe_planner_add_new_period {
+}
+
+.add_workout_button,
+.add_period_button {
+  cursor: pointer;
+  border: none;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  @include button-typography(normal);
+  @include body-typography;
+  color: $white;
+  margin-left: 2.5rem;
+
+  &:hover {
+    @include button-typography(hover);
+    @include body-typography;
+    color: $white;
+  }
+  &:active {
+    @include button-typography(click);
+    @include body-typography;
+    color: $white;
+  }
+}
+
+.save {
+  background-color: $success-color;
+}
+
+.cancel_period {
+  background-color: $danger-color;
+}
+.cancel {
+  background-color: $danger-color;
+  cursor: pointer;
+  border: none;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  @include button-typography(normal);
+  @include body-typography;
+  color: $white;
+
+  &:hover {
+    @include button-typography(hover);
+    @include body-typography;
+    color: $white;
+  }
+  &:active {
+    @include button-typography(click);
+    @include body-typography;
+    color: $white;
+  }
+}
+
+.button_container {
+  @include flex-row;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.add_period_button {
+  margin-top: 1.5rem;
+  margin-left: 0;
+}
+
+.button_wrapper {
+  @include flex-row;
+  justify-content: flex-start;
+  background-color: #aaaaaa;
+}
+
+.button_text {
+  @include body-typography;
+}
+
+.periods_list {
+  margin: 1rem 1rem 0.1rem 1rem;
+  //max-height: 500rem; // THIS IS JUST A PLAIN AND STUPID HACK -- please fix later
+  transition: max-height 400ms ease;
+  width: 100%;
+}
+
+.periods_header {
+  width: 100%;
+  @include flex-row;
+  padding-left: 0.3rem;
+  border-radius: $input-border-radius;
+  background-color: rgba($primary-color-light, 0.3);
+
+  &:hover {
+    background-color: rgba($primary-color-light, 0.2);
+    border-radius: $input-border-radius;
+  }
+}
+
+.collapse_icon_wrapper {
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.period_name {
+  @include body-typography;
+  font-weight: bold;
+  padding: 0.5em;
+  cursor: pointer;
+  flex: 1;
+}
+
+.workout_list {
+  margin-left: 2.5rem;
+}
+.workout_list_new {
+  margin-left: 2.5rem;
+  background-color: rgba($primary-color, 0.3);
+  border-radius: $input-border-radius;
+}
+
+.workout_name {
+  @include body-typography;
+  margin-left: 1em;
+  padding: 0.2em;
+  cursor: pointer;
+  &:hover {
+    background-color: rgba($primary-color-light, 0.2);
+    border-radius: 0.3rem;
+  }
+}
+
+.exercise_list {
+  margin-left: 2.5em;
+}
+
+.exercise_name {
+  @include info-typography;
+  margin: 0.4em 1em;
+  cursor: pointer;
+  padding: 0.2em;
+  &:hover {
+    background-color: rgba($primary-color-light, 0.2);
+    border-radius: 0.3rem;
+  }
+}
+
+.selected_bg {
+  background-color: rgba($primary-color, 0.7) !important;
+  border-radius: 0.3rem;
+}
+
+.edit_area {
+  flex: 1;
+  height: 100%;
+  @include flex-column;
+  border-left: $one-pixel solid $grey-light;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+.form {
+  width: 100%;
+}
+
+.cancel_update_period {
+  width: 100%;
+  text-align: center;
+  @include info-typography;
+  cursor: pointer;
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.create_period_container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: 1rem;
+}
+
+.error_message_period,
+.error_message_workout {
+  width: 100%;
+  text-align: center;
+  @include info-typography;
+  color: $danger-color;
+  font-weight: bold;
+  font-size: 0;
+  transition: font-size 300ms ease;
+  margin-bottom: 2rem;
+}
+
+.input_control {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.new_period_name,
+.new_period_description,
+.new_period_time,
+.new_exercise_name,
+.new_exercise_description,
+.new_exercise_video_link {
+  width: 100%;
+  @include body-typography;
+  border-radius: 1rem;
+  border: 0.2rem solid $grey-dark;
+  outline: none;
+  padding: 1rem;
+  box-sizing: border-box;
+  transition: 0.3s;
+  letter-spacing: $one-pixel;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+}
+
+.new_period_description {
+  resize: none;
+}
+
+.new_period_start_end_time_container,
+.exercise_sets_reps_container,
+.exercise_resistance_rest_container,
+.exercise_order_container {
+  @include flex-row;
+  width: 100%;
+}
+
+.new_period_time {
+  flex: 1;
+}
+.new_period_time_filler {
+  width: 2rem;
+}
+
+.btn_main {
+  width: 100%;
+  cursor: pointer;
+  border: none;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  @include button-typography(normal);
+
+  &:hover {
+    @include button-typography(hover);
+  }
+  &:active {
+    @include button-typography(click);
+  }
+}
+
+.exercise {
+  @include body-typography;
+  margin: 0.4rem 0;
+  flex: 1;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  &:hover {
+    color: $primary-color;
+  }
+}
+.create_new_exercise_resource_label {
+  width: 100%;
+  @include info-typography;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.create_new_exercise_resource {
+  width: 100%;
+  @include flex-column;
+  transition: max-height 300ms ease;
+  overflow: hidden;
+}
+.create_new_exercise_resource_measure {
+  position: absolute;
+  top: -10000%;
+  left: -10000%;
+  width: 100%;
+  @include flex-column;
+  transition: max-height 300ms ease;
+  overflow: hidden;
+}
+.collapse_icon_wrapper_workout {
+  @include flex-row;
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.workout_header {
+  padding: 0.5rem;
+}
+
+.add_new_period_wrapper {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: rgba($primary-color, 0.3);
+  border-radius: $input-border-radius;
+}
+.workout_number {
+  @include heading-typography;
+  margin: 0 1rem;
+}
+.exe_number {
+  @include heading-typography;
+}
+
+.form_workout,
+.form_exercise {
+  width: 100%;
+  @include flex-row;
+  box-sizing: border-box;
+  margin: 1rem 0;
+}
+.form_exercise {
+  margin: 1rem 0;
+}
+
+.exe_list_item {
+  padding-left: 3rem;
+}
+
+.workout_filler {
+  width: 1rem;
+}
+.button_separator {
+  width: 1rem;
+}
+
+.create_workout_container,
+.create_exercise_container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  box-sizing: border-box;
+  background-color: rgba($primary-color, 0.3);
+  border-radius: $input-border-radius;
+  padding: 1rem;
+}
+
+.create_exercise_container {
+  padding-left: 3rem;
+  margin-bottom: 1rem;
+}
+
+.new_workout_name,
+.new_workout_description {
+  width: 100%;
+  @include body-typography;
+  border-radius: 1rem;
+  border: 0.2rem solid $grey-dark;
+  outline: none;
+  padding: 1rem;
+  box-sizing: border-box;
+  transition: 0.3s;
+  letter-spacing: $one-pixel;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+}
+.input_control_workout_name {
+  width: 25%;
+  box-sizing: border-box;
+}
+
+.input_control_workout_desc {
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.btn_save {
+  width: 100%;
+  cursor: pointer;
+  border: none;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1rem 1rem 2.5rem;
+  @include button-typography(normal);
+
+  &:hover {
+    @include button-typography(hover);
+  }
+  &:active {
+    @include button-typography(click);
+  }
+}
+
+//.create_exercise_container {
+//    @include flex-column;
+//    width: 100%;
+//    box-sizing: border-box;
+//    max-height: 0;
+//    transition: all 300ms ease;
+//}
+
+.exe_sets_reps_resist_input {
+  width: 100%;
+  @include body-typography;
+  border-radius: 1rem;
+  border: 0.2rem solid $grey-dark;
+  outline: none;
+  padding: 1rem;
+  box-sizing: border-box;
+  transition: 0.3s;
+  letter-spacing: $one-pixel;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+}
+
+.input_control_exe {
+  width: 30%;
+  box-sizing: border-box;
+}
+.input_control_exe_dropdown {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add_exe_info_button,
+.add_exe_superset_button {
+  width: 20%;
+  cursor: pointer;
+  border: none;
+  @include button-typography(normal);
+  @include body-typography;
+  color: $white;
+
+  &:hover {
+    @include button-typography(hover);
+    @include body-typography;
+    color: $white;
+  }
+  &:active {
+    @include button-typography(click);
+    @include body-typography;
+    color: $white;
+  }
+}
+
+.input_error_border {
+  border-color: $danger-color !important;
+}
+.input_success_border {
+  border-color: $success-color !important;
+}
+.exe_list_wrapper {
+  width: 100%;
+  position: relative;
+}
+.clicker {
+  width: 100%;
+  height: 100%;
+  background-color: #ef5350;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.add_info_popup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99999;
+  background-color: rgba($black, 0.7);
+  width: 100%;
+  height: 100%;
+  @include flex-column;
+}
+.popup {
+  width: 50%;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.popup_header {
+  width: 100%;
+  height: 5rem;
+  background-color: $secondary-color;
+  @include heading-typography;
+  color: $white;
+  @include flex-no-direction;
+}
+
+.popup_content {
+  width: 100%;
+  padding: 3rem 1rem 1rem 1rem;
+  background-color: $white;
+}
+
+.exercise_info {
+  width: 100%;
+  @include body-typography;
+  border-radius: 1rem;
+  border: 0.2rem solid $grey-dark;
+  outline: none;
+  padding: 1rem;
+  box-sizing: border-box;
+  transition: 0.3s;
+  letter-spacing: $one-pixel;
+  resize: none;
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+}
+
+.duplicate {
+  font-size: 1.5rem;
+  color: $info-color;
+  margin-left: 1rem;
+}
+
+.delete {
+  font-size: 1.5rem;
+  color: $danger-color;
+  margin: 0 1rem;
+}
+
+.reorder_arrow {
+  font-size: 1.7rem;
+  color: $primary-color;
+  margin: 0 0.5rem;
+}
+
+.exe_info_container {
+  width: 50%;
+  max-width: 70%;
+  max-height: 70%;
+  @include flex-column;
+  align-items: flex-start;
+  background-color: $white;
+  border-radius: 1rem;
+}
+.exe_info_header {
+  background-color: $secondary-color;
+  border-radius: 1rem 1rem 0 0;
+  width: 100%;
+  height: 7rem;
+  @include flex-column;
+  @include body-typography;
+  color: $white;
+  font-weight: bold;
+  padding: 1rem 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.exe_info_video {
+  width: 64rem;
+  height: 39rem;
+  background-color: $white;
+  @include flex-column;
+  @include body-typography;
+  font-weight: bold;
+  margin: 0 auto;
+}
+.exe_info_description {
+  background-color: $white;
+  border-radius: 0 0 1rem 1rem;
+  width: 100%;
+  @include flex-column;
+  @include body-typography;
+  font-weight: bold;
+  padding: 3rem;
+}
