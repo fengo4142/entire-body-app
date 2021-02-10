@@ -1,6 +1,11 @@
 const initialState = {
   coachState: {
-    coachExercisePlanState: "",
+    coachExercisePlanState: {
+      exercisePlan: {
+        name: "",
+        info: "",
+      },
+    },
   },
   userState: {
     user: {

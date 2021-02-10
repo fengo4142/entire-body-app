@@ -10,12 +10,12 @@ const updatePeriod = () => ({});
 const deletePeriod = () => ({});
 const createWorkout = () => ({});
 const updateWorkout = () => ({});
-const updateWorkoutOrder = () => ({});
 const deleteWorkout = () => ({});
-const getExerciseListForDropDown = (payload) => ({});
 const createExercise = () => ({});
 const updateExercise = () => ({});
 const deleteExercise = () => ({});
+const updateWorkoutOrder = () => ({});
+const getExerciseListForDropDown = () => ({});
 const duplicateExerciseResources = () => ({});
 
 export {

@@ -1,108 +1,64 @@
-import React, { Component } from "react";
-import style from "./CreateExercisePlan.module.scss";
-import PeriodWorkoutView from "./PeriodAndWorkoutView/PeriodWorkoutView";
-import InputControl from "../Components/Custom/InputControl";
-import { faAd } from "@fortawesome/free-solid-svg-icons/faAd";
-import { faPizzaSlice } from "@fortawesome/free-solid-svg-icons/faPizzaSlice";
-import { faRunning } from "@fortawesome/free-solid-svg-icons/faRunning";
-import Loading from "../Components/General/Loading/Loading";
-import { withTranslation } from "react-i18next";
-import { bindActionCreators } from "redux";
+import React, { useRef, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+
 import {
   createExercisePlan,
   updateExercisePlan,
   getExercisePlan,
 } from "../Redux/Component/Coach/ExercisePlan/ExercisePlanActions";
-import { connect } from "react-redux";
-import * as PropTypes from "prop-types";
+import { CONSTANTS, getPlanCategory } from "../Utils";
+import Loading from "../Components/General/Loading/Loading";
+import InputControl from "../Components/Custom/InputControl";
+import PeriodWorkoutView from "./PeriodAndWorkoutView/PeriodWorkoutView";
+import style from "./CreateExercisePlan.module.scss";
 
-class CreateExercisePlan extends Component {
-  constructor(props) {
-    super(props);
-    this.fullViewRef = React.createRef();
-    this.PeriodWorkoutViewRef = React.createRef();
-    this.state = {
-      currentFullHeight: 0,
-      currentPeriodWorkoutViewHeight: 0,
-      tags: [
-        {
-          name: "my tag",
-          icon: faAd,
-          tagColor: "#fb781f",
-        },
-        {
-          name: "motivation",
-          icon: faPizzaSlice,
-          tagColor: "#26a69a",
-        },
-        {
-          name: "Running",
-          icon: faRunning,
-          tagColor: "#3f3fc3",
-        },
-      ],
-      inputVisible: false,
-      inputValue: "",
+export const CreateExercisePlan = (props) => {
+  const dispatch = useDispatch();
+  const { t } = useTranslation();
+  const { location } = props;
 
-      exePlanName: "",
-      exePlanDes: "",
-      selectedCategory: "strength",
-      selectedProgram: "customer",
-      isError: false,
-      missingField: "",
-      isExePlanNameEmpty: false,
-      isExePlanDesEmpty: false,
+  const { coachExercisePlanState, token } = useSelector((state) => ({
+    coachExercisePlanState: state.coachState.coachExercisePlanState,
+    token: state.userState.user.token,
+  }));
 
-      showCompactView: false,
-      fullViewStyle: {
-        maxHeight: 10000,
-        opacity: 1,
-      },
-      compactViewStyle: {
-        height: "5.1rem",
-        opacity: 1,
-        paddingTop: "1rem",
-        paddingBottom: "1rem",
-      },
-      periodWorkoutViewStyle: {
-        maxHeight: 0,
-        opacity: 0,
-      },
-      showIconPicker: false,
-      iconPickerX: -9999999,
-      iconPickerY: -9999999,
-      clickedOutsideIconPicker: true,
-      periodData: [],
-      isPeriodDataLoaded: false,
-      planID: -1,
-    };
+  const callbackRef = useRef(true);
+  const fullViewRef = useRef();
+  const periodWorkoutViewRef = useRef();
+  const [tags, setTags] = useState(CONSTANTS.tags);
+  const [showCompactView, setShowCompactView] = useState(false);
+  const [state, setState] = useState({
+    isPeriodDataLoaded: false,
+    planID: -1,
+    periodData: [],
+    exePlanName: coachExercisePlanState.exercisePlan.name,
+    exePlanDes: coachExercisePlanState.exercisePlan.info,
+    currentFullHeight: 0,
+    currentPeriodWorkoutViewHeight: 0,
+    fullViewStyle: {
+      maxHeight: 1000,
+      opacity: 1,
+    },
+    periodWorkoutViewStyle: {
+      maxHeight: 0,
+      opacity: 0,
+    },
+    isExePlanNameEmpty: false,
+    isExePlanDesEmpty: false,
+    isError: false,
+    missingField: "",
+    selectedCategory: "strength",
+    selectedProgram: "program",
+  });
 
-    this.handleCategorySelect = this.handleCategorySelect.bind(this);
-    this.handleGeneralInfoSave = this.handleGeneralInfoSave.bind(this);
-    this.handleExePlanNameChange = this.handleExePlanNameChange.bind(this);
-    this.handleExePlanDesChange = this.handleExePlanDesChange.bind(this);
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     //Check if the ID is -1 or undefined that means you need to make a new plan
-
-    let planIDExists;
-    let planID;
-
-    try {
-      planID = this.props.location.state.plan_id;
-      planIDExists = true;
-      console.log(planIDExists, planID);
-    } catch {
-      planIDExists = false;
-      planID = -1;
-
-      console.log("nope", planIDExists, planID);
-    }
-
-    if (!planIDExists || planID === -1) {
+    const { plan_id } = location.state;
+    if (!plan_id) {
       //make a new plan
-      this.setState({
+      setState({
+        ...state,
         isPeriodDataLoaded: true,
         planID: -1,
         periodData: [
@@ -117,85 +73,48 @@ class CreateExercisePlan extends Component {
         ],
       });
     }
-    //else get the plan data from the server using the ID and send that Data to periodWorkoutView component
+    // else get the plan data from the server using the ID and send that Data to periodWorkoutView component
     // as wel ass fill in the exercise plan state
     else {
       //fetch the data from server
-      let payload = {
-        mode: "id",
-        program_id: this.props.location.state.plan_id,
-      };
-      this.props.getExercisePlan(this.props.token, payload).then(() => {
-        if (this.props.coachExercisePlanState.isExercisePlanFetched) {
-          let periodData;
-          if (
-            this.props.coachExercisePlanState.exercisePlan.periods.length < 1
-          ) {
-            periodData = [
-              {
-                id: -1,
-                name: "",
-                info: "",
-                start_time: 1,
-                end_time: 2,
-                workouts: [],
-              },
-            ];
-          } else {
-            periodData = this.props.coachExercisePlanState.exercisePlan.periods;
-          }
+      const payload = { mode: "id", program_id: plan_id };
+      dispatch(getExercisePlan(token, payload)).then(() => {
+        const { isExercisePlanFetched, exercisePlan } = coachExercisePlanState;
+        if (isExercisePlanFetched) {
+          const periodData = !exercisePlan.periods.length
+            ? exercisePlan.periods
+            : [
+                {
+                  id: -1,
+                  name: "",
+                  info: "",
+                  start_time: 1,
+                  end_time: 2,
+                  workouts: [],
+                },
+              ];
 
-          let category;
-          let program;
-          console.log(
-            this.props.coachExercisePlanState.exercisePlan.plan_type.toUpperCase()
-          );
-          switch (
-            this.props.coachExercisePlanState.exercisePlan.plan_type.toUpperCase()
-          ) {
-            case "Styrke".toUpperCase():
-            case "Strength".toUpperCase():
-              category = "strength";
-              break;
-            case "Kondisjon".toUpperCase():
-            case "cardio".toUpperCase():
-              category = "cardio";
-              break;
-            case "Styrke og kondisjon".toUpperCase():
-            case "strength & cardio".toUpperCase():
-              category = "strength & cardio";
+          const category = getPlanCategory(exercisePlan);
+          const program =
+            exercisePlan.public === 1
+              ? "public"
+              : exercisePlan.public === 0
+              ? "customer"
+              : "strength";
 
-              console.log(category);
-              break;
-            case "Crossfit".toUpperCase():
-              category = "crossfit";
-              break;
-            default:
-              category = "strength";
-          }
-
-          switch (this.props.coachExercisePlanState.exercisePlan.public) {
-            case 1:
-              program = "public";
-              break;
-            case 0:
-              program = "customer";
-              break;
-            default:
-              program = "strength";
-          }
-
-          this.setState({
+          setState({
+            ...state,
             isPeriodDataLoaded: true,
             periodData: periodData,
-            planID: this.props.location.state.plan_id,
-            exePlanName: this.props.coachExercisePlanState.exercisePlan.name,
-            exePlanDes: this.props.coachExercisePlanState.exercisePlan.info,
+            planID: plan_id,
+            exePlanName: exercisePlan.name,
+            exePlanDes: exercisePlan.info,
             selectedCategory: category,
             selectedProgram: program,
           });
         } else {
-          this.setState({
+          setState({
+            ...state,
             isPeriodDataLoaded: false,
             // errorMsg: this.props.coachExercisePlanState.exercisePlanListErrorMsg,
             // isLoadingExercisePlanList: false
@@ -204,131 +123,136 @@ class CreateExercisePlan extends Component {
       });
     }
 
-    this.setState({
-      currentFullHeight: this.fullViewRef.current.getBoundingClientRect()
-        .height,
-      currentPeriodWorkoutViewHeight:
-        this.PeriodWorkoutViewRef.current.getBoundingClientRect().height +
-        this.fullViewRef.current.getBoundingClientRect().height,
+    const { height: fHeight } = fullViewRef.current.getBoundingClientRect();
+    const {
+      height: pHeight,
+    } = periodWorkoutViewRef.current.getBoundingClientRect();
+
+    setState({
+      ...state,
+      currentFullHeight: fHeight,
+      currentPeriodWorkoutViewHeight: pHeight + fHeight,
       fullViewStyle: {
-        maxHeight: this.fullViewRef.current.getBoundingClientRect().height,
+        maxHeight: fHeight,
         opacity: 1,
       },
       periodWorkoutViewStyle: {
-        maxHeight:
-          this.PeriodWorkoutViewRef.current.getBoundingClientRect().height +
-          this.fullViewRef.current.getBoundingClientRect().height,
+        maxHeight: pHeight + fHeight,
       },
     });
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachExercisePlanState, dispatch, location, token]);
 
-  handleExePlanNameChange(event) {
-    this.setState({ exePlanName: event.target.value });
-  }
+  const handleExePlanNameChange = (event) => {
+    setState({
+      ...state,
+      exePlanName: event.target.value,
+    });
+  };
 
-  handleExePlanDesChange(event) {
-    this.setState({ exePlanDes: event.target.value });
-  }
+  const handleExePlanDesChange = (event) => {
+    setState({
+      ...state,
+      exePlanDes: event.target.value,
+    });
+  };
 
-  handleCategorySelect = (category, value) => {
+  const handleCategorySelect = (category, value) => {
     if (category === "category") {
-      this.setState(
-        {
-          selectedCategory: value,
-        },
-        () => {
-          this.handleGeneralInfoSave();
-        }
-      );
-    } else if (category === "program") {
-      this.setState(
-        {
-          selectedProgram: value,
-        },
-        () => {
-          this.handleGeneralInfoSave();
-        }
-      );
+      setState({
+        ...state,
+        selectedCategory: value,
+      });
+    }
+    if (category === "program") {
+      setState({
+        ...state,
+        selectedProgram: value,
+      });
     }
   };
 
-  handleGeneralInfoSave = () => {
-    this.setState(
+  const handleGeneralInfoSave = () => {
+    setState(
       {
+        ...state,
         isExePlanNameEmpty: false,
         isExePlanDesEmpty: false,
         isError: false,
         missingField: "",
       },
       () => {
-        if (this.state.exePlanName === "") {
-          this.setState({
+        if (state.exePlanName === "") {
+          setState({
+            ...state,
             isExePlanNameEmpty: true,
             isError: true,
-            missingField: this.props.t("ExercisePlan.plan-name"),
+            missingField: t("ExercisePlan.plan-name"),
           });
           return;
         }
 
-        if (this.state.exePlanDes === "") {
-          this.setState({
+        if (state.exePlanDes === "") {
+          setState({
+            ...state,
             isExePlanDesEmpty: true,
             isError: true,
-            missingField: this.props.t("ExercisePlan.plan-desc"),
+            missingField: t("ExercisePlan.plan-desc"),
           });
           return;
         }
 
         //if newExercisePlanID is not -1 that means we need to update the current program instead of making a new one
-        if (this.state.planID !== -1) {
+        if (state.planID !== -1) {
           console.log("Updating the Current Program");
           let payload = {
-            exe_plan_id: this.state.planID,
-            name: this.state.exePlanName,
-            info: this.state.exePlanDes,
+            exe_plan_id: state.planID,
+            name: state.exePlanName,
+            info: state.exePlanDes,
             tags: "",
             locale: "",
-            plan_type: this.state.selectedCategory,
-            public: this.state.selectedProgram === "public",
+            plan_type: state.selectedCategory,
+            public: state.selectedProgram === "public",
             created_at: Date.now() / 1000,
           };
-          this.props.updateExercisePlan(this.props.token, payload).then(() => {
-            if (this.props.coachExercisePlanState.isExercisePlanUpdated) {
+          dispatch(updateExercisePlan(token, payload)).then(() => {
+            if (coachExercisePlanState.isExercisePlanUpdated) {
               console.log(
                 "exe is updated with id: ",
-                this.props.coachExercisePlanState.newExercisePlanID
+                coachExercisePlanState.newExercisePlanID
               );
             } else {
               console.log(
                 "failed to update with: ",
-                this.props.coachExercisePlanState.exercisePlanUpdateError
+                coachExercisePlanState.exercisePlanUpdateError
               );
             }
           });
         } else {
           console.log("Making A new Program");
-          let payload = {
-            name: this.state.exePlanName,
-            info: this.state.exePlanDes,
+          const payload = {
+            name: state.exePlanName,
+            info: state.exePlanDes,
             tags: "",
             locale: "",
-            plan_type: this.state.selectedCategory,
-            public: this.state.selectedProgram === "public",
+            plan_type: state.selectedCategory,
+            public: state.selectedProgram === "public",
             created_at: Date.now() / 1000,
           };
-          this.props.createExercisePlan(this.props.token, payload).then(() => {
-            if (this.props.coachExercisePlanState.isExercisePlanCreated) {
+          dispatch(createExercisePlan(token, payload)).then(() => {
+            if (coachExercisePlanState.isExercisePlanCreated) {
               console.log(
                 "exe is created with id: ",
-                this.props.coachExercisePlanState.newExercisePlanID
+                coachExercisePlanState.newExercisePlanID
               );
-              this.setState({
-                planID: this.props.coachExercisePlanState.newExercisePlanID,
+              setState({
+                ...state,
+                planID: coachExercisePlanState.newExercisePlanID,
               });
             } else {
               console.log(
                 "failed to create with: ",
-                this.props.coachExercisePlanState.exercisePlanCreationError
+                coachExercisePlanState.exercisePlanCreationError
               );
             }
           });
@@ -337,227 +261,193 @@ class CreateExercisePlan extends Component {
     );
   };
 
-  render() {
-    const { t } = this.props;
-    return (
-      <div className={style.main_container}>
-        <h1 className={style.title}>
-          {t("ExercisePlan.create-exercise-plan")}
-        </h1>
+  useEffect(() => {
+    if (callbackRef.current) {
+      callbackRef.current = false;
+      return;
+    }
+    handleGeneralInfoSave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.selectedCategory, state.selectedProgram]);
 
-        <p
-          className={style.error_message}
-          style={this.state.isError ? { fontSize: "1.4rem" } : {}}
-        >
-          {this.state.missingField} {t("ExercisePlan.is-missing")}.
-        </p>
+  return (
+    <div className={style.main_container}>
+      <h1 className={style.title}>{t("ExercisePlan.create-exercise-plan")}</h1>
 
-        <form
-          className={style.form}
-          style={this.state.fullViewStyle}
-          ref={this.fullViewRef}
-        >
-          <div className={style.general_inputs}>
-            <InputControl
-              label={t("ExercisePlan.plan-name")}
-              isEmpty={this.state.exePlanName.length < 1}
-              isError={this.state.isExePlanNameEmpty}
-              className={style.input_control}
-            >
-              <input
-                className={style.exercise_name}
-                type="text"
-                value={this.state.exePlanName}
-                onChange={(evt) => this.handleExePlanNameChange(evt)}
-                onBlur={() => this.handleGeneralInfoSave()}
-              />
-            </InputControl>
+      <p
+        className={style.error_message}
+        style={state.isError ? { fontSize: "1.4rem" } : {}}
+      >
+        {state.missingField} {t("ExercisePlan.is-missing")}.
+      </p>
 
-            <InputControl
-              label={t("ExercisePlan.plan-desc")}
-              isEmpty={this.state.exePlanDes.length < 1}
-              isError={this.state.isExePlanDesEmpty}
-              centerLabel={false}
-              className={style.input_control}
-            >
-              <textarea
-                rows="5"
-                className={style.exercise_description}
-                value={this.state.exePlanDes}
-                onChange={(evt) => this.handleExePlanDesChange(evt)}
-                onBlur={() => this.handleGeneralInfoSave()}
-              />
-            </InputControl>
-          </div>
-          <div className={style.general_checkboxes}>
-            {/*type*/}
-            <div className={style.exercise_category}>
-              <h1 className={style.cat_title}>{t("ExercisePlan.category")}</h1>
-              <div className={style.category_options}>
+      <form
+        className={style.form}
+        style={state.fullViewStyle}
+        ref={fullViewRef}
+      >
+        <div className={style.general_inputs}>
+          <InputControl
+            label={t("ExercisePlan.plan-name")}
+            isEmpty={state.exePlanName.length < 1}
+            isError={state.isExePlanNameEmpty}
+            className={style.input_control}
+          >
+            <input
+              className={style.exercise_name}
+              type="text"
+              value={state.exePlanName}
+              onChange={(evt) => handleExePlanNameChange(evt)}
+              onBlur={() => handleGeneralInfoSave()}
+            />
+          </InputControl>
+
+          <InputControl
+            label={t("ExercisePlan.plan-desc")}
+            isEmpty={state.exePlanDes.length < 1}
+            isError={state.isExePlanDesEmpty}
+            centerLabel={false}
+            className={style.input_control}
+          >
+            <textarea
+              rows="5"
+              className={style.exercise_description}
+              value={state.exePlanDes}
+              onChange={(evt) => handleExePlanDesChange(evt)}
+              onBlur={() => handleGeneralInfoSave()}
+            />
+          </InputControl>
+        </div>
+        <div className={style.general_checkboxes}>
+          {/*type*/}
+          <div className={style.exercise_category}>
+            <h1 className={style.cat_title}>{t("ExercisePlan.category")}</h1>
+            <div className={style.category_options}>
+              <div
+                className={style.category_option}
+                onClick={() => handleCategorySelect("category", "strength")}
+              >
                 <div
-                  className={style.category_option}
-                  onClick={() =>
-                    this.handleCategorySelect("category", "strength")
-                  }
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedCategory === "strength"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.strength")}
-                  </h2>
-                </div>
-
-                <div
-                  className={`${style.category_option} ${style.center_one}`}
-                  onClick={() =>
-                    this.handleCategorySelect("category", "cardio")
-                  }
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedCategory === "cardio"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.cardio")}
-                  </h2>
-                </div>
-
-                <div
-                  className={`${style.category_option} ${style.center_one}`}
-                  onClick={() =>
-                    this.handleCategorySelect("category", "strength & cardio")
-                  }
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedCategory === "strength & cardio"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.strength-cardio")}
-                  </h2>
-                </div>
-
-                <div
-                  className={`${style.category_option} ${style.center_one}`}
-                  onClick={() =>
-                    this.handleCategorySelect("category", "crossfit")
-                  }
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedCategory === "crossfit"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.crossfit")}
-                  </h2>
-                </div>
+                  className={`${style.cat_checkbox} ${
+                    state.selectedCategory === "strength"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.strength")}
+                </h2>
               </div>
-            </div>
 
-            {/*Category*/}
-            <div className={style.customer_category}>
-              <h1 className={style.cat_title}>Program for</h1>
-              <div className={style.category_options}>
+              <div
+                className={`${style.category_option} ${style.center_one}`}
+                onClick={() => handleCategorySelect("category", "cardio")}
+              >
                 <div
-                  className={style.category_option}
-                  onClick={() => this.handleCategorySelect("program", "public")}
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedProgram === "public"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.public")}
-                  </h2>
-                </div>
+                  className={`${style.cat_checkbox} ${
+                    state.selectedCategory === "cardio"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.cardio")}
+                </h2>
+              </div>
+
+              <div
+                className={`${style.category_option} ${style.center_one}`}
+                onClick={() =>
+                  handleCategorySelect("category", "strength & cardio")
+                }
+              >
                 <div
-                  className={`${style.category_option} ${style.center_one}`}
-                  onClick={() =>
-                    this.handleCategorySelect("program", "customer")
-                  }
-                >
-                  <div
-                    className={`${style.cat_checkbox} ${
-                      this.state.selectedProgram === "customer"
-                        ? style.cat_checkbox_selected
-                        : ""
-                    }`}
-                  />
-                  <h2 className={style.option_name}>
-                    {t("ExercisePlan.customer")}
-                  </h2>
-                </div>
+                  className={`${style.cat_checkbox} ${
+                    state.selectedCategory === "strength & cardio"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.strength-cardio")}
+                </h2>
+              </div>
+
+              <div
+                className={`${style.category_option} ${style.center_one}`}
+                onClick={() => handleCategorySelect("category", "crossfit")}
+              >
+                <div
+                  className={`${style.cat_checkbox} ${
+                    state.selectedCategory === "crossfit"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.crossfit")}
+                </h2>
               </div>
             </div>
           </div>
-        </form>
 
-        {/*Exercise Periods*/}
-        <div
-          className={style.exercise_periods_container}
-          ref={this.PeriodWorkoutViewRef}
-        >
-          {this.state.isPeriodDataLoaded && (
-            <PeriodWorkoutView data={this.state.periodData} />
-          )}
-          {!this.state.isPeriodDataLoaded && <Loading loading={true} />}
+          {/*Category*/}
+          <div className={style.customer_category}>
+            <h1 className={style.cat_title}>Program for</h1>
+            <div className={style.category_options}>
+              <div
+                className={style.category_option}
+                onClick={() => handleCategorySelect("program", "public")}
+              >
+                <div
+                  className={`${style.cat_checkbox} ${
+                    state.selectedProgram === "public"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.public")}
+                </h2>
+              </div>
+              <div
+                className={`${style.category_option} ${style.center_one}`}
+                onClick={() => handleCategorySelect("program", "customer")}
+              >
+                <div
+                  className={`${style.cat_checkbox} ${
+                    state.selectedProgram === "customer"
+                      ? style.cat_checkbox_selected
+                      : ""
+                  }`}
+                />
+                <h2 className={style.option_name}>
+                  {t("ExercisePlan.customer")}
+                </h2>
+              </div>
+            </div>
+          </div>
         </div>
-        <div
-          className={style.btn_main_container}
-          style={
-            this.state.showCompactView ? { height: 0, overflow: "hidden" } : {}
-          }
-        >
-          <button className={style.btn_main}>
-            {t("ExercisePlan.save-plan")}
-          </button>
-        </div>
+      </form>
+
+      {/*Exercise Periods*/}
+      <div
+        className={style.exercise_periods_container}
+        ref={periodWorkoutViewRef}
+      >
+        {state.isPeriodDataLoaded && (
+          <PeriodWorkoutView data={state.periodData} />
+        )}
+        {!state.isPeriodDataLoaded && <Loading loading={true} />}
       </div>
-    );
-  }
-}
-
-CreateExercisePlan.propTypes = {
-  createExercisePlan: PropTypes.element.isRequired && PropTypes.func,
-  updateExercisePlan: PropTypes.element.isRequired && PropTypes.func,
-  getExercisePlan: PropTypes.element.isRequired && PropTypes.func,
-  coachExercisePlanState: PropTypes.element.isRequired && PropTypes.object,
-  token: PropTypes.element.isRequired && PropTypes.string,
-  location: PropTypes.object.isRequired,
-  t: PropTypes.func.isRequired,
-};
-
-const mapStateToProps = (state) => {
-  return {
-    coachExercisePlanState: state.coachState.coachExercisePlanState,
-    token: state.userState.user.token,
-  };
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators(
-    { createExercisePlan, updateExercisePlan, getExercisePlan },
-    dispatch
+      <div
+        className={style.btn_main_container}
+        style={showCompactView ? { height: 0, overflow: "hidden" } : {}}
+      >
+        <button className={style.btn_main}>
+          {t("ExercisePlan.save-plan")}
+        </button>
+      </div>
+    </div>
   );
 };
-
-export default withTranslation()(
-  connect(mapStateToProps, mapDispatchToProps)(React.memo(CreateExercisePlan))
-);

@@ -1,9 +1,14 @@
-import CreateExecisePlan from "./Pages/CreateExercisePlan";
+import { CreateExercisePlan } from "./Pages/CreateExercisePlan";
 
 function App() {
+  const location = {
+    state: {
+      plan_id: "",
+    },
+  };
   return (
     <div className="App">
-      <CreateExecisePlan />
+      <CreateExercisePlan location={location} />
     </div>
   );
 }
