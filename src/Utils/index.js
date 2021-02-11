@@ -1,8 +1,4 @@
-import {
-  faAd,
-  faPizzaSlice,
-  faRunning,
-} from "@fortawesome/free-solid-svg-icons";
+import { faAd, faPizzaSlice, faRunning } from "@fortawesome/free-solid-svg-icons";
 
 export const CONSTANTS = {
   tags: [
@@ -35,16 +31,15 @@ export const CONSTANTS = {
 };
 
 export const getPlanCategory = (exercisePlan) => {
-  const planCategories = [
-    "Strength",
-    "cardio",
-    "strength & cardio",
-    "Crossfit",
-  ];
+  const planCategories = ["Strength", "cardio", "strength & cardio", "Crossfit"];
 
   return planCategories
     .map((item) => item.trim().toLowerCase())
     .includes(exercisePlan.plan_type.toLowerCase())
     ? exercisePlan.plan_type.toLowerCase()
     : CONSTANTS.defaultCategory;
+};
+
+export const getPlanProgram = (exercisePlan) => {
+  return exercisePlan.public === 1 ? "public" : exercisePlan.public === 0 ? "customer" : "strength";
 };

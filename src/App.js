@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { CreateExercisePlan } from "./Pages/CreateExercisePlan";
 
 function App() {
@@ -7,9 +8,9 @@ function App() {
     },
   };
   return (
-    <div className="App">
+    <Suspense fallback="loading">
       <CreateExercisePlan location={location} />
-    </div>
+    </Suspense>
   );
 }
 

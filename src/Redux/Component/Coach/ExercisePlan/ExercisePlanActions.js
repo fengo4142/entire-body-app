@@ -1,7 +1,4 @@
-const createExercisePlan = (payload) => ({
-  type: "",
-  payload,
-});
+const createExercisePlan = (payload) => ({ type: "", payload });
 
 const updateExercisePlan = () => ({});
 const getExercisePlan = () => ({});

@@ -7,7 +7,7 @@ import {
   updateExercisePlan,
   getExercisePlan,
 } from "../Redux/Component/Coach/ExercisePlan/ExercisePlanActions";
-import { CONSTANTS, getPlanCategory } from "../Utils";
+import { CONSTANTS, getPlanCategory, getPlanProgram } from "../Utils";
 import Loading from "../Components/General/Loading/Loading";
 import InputControl from "../Components/Custom/InputControl";
 import PeriodWorkoutView from "./PeriodAndWorkoutView/PeriodWorkoutView";
@@ -15,7 +15,7 @@ import style from "./CreateExercisePlan.module.scss";
 
 export const CreateExercisePlan = (props) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t } = useTranslation([]);
   const { location } = props;
 
   const { coachExercisePlanState, token } = useSelector((state) => ({
@@ -95,12 +95,7 @@ export const CreateExercisePlan = (props) => {
               ];
 
           const category = getPlanCategory(exercisePlan);
-          const program =
-            exercisePlan.public === 1
-              ? "public"
-              : exercisePlan.public === 0
-              ? "customer"
-              : "strength";
+          const program = getPlanProgram(exercisePlan);
 
           setState({
             ...state,
@@ -124,9 +119,7 @@ export const CreateExercisePlan = (props) => {
     }
 
     const { height: fHeight } = fullViewRef.current.getBoundingClientRect();
-    const {
-      height: pHeight,
-    } = periodWorkoutViewRef.current.getBoundingClientRect();
+    const { height: pHeight } = periodWorkoutViewRef.current.getBoundingClientRect();
 
     setState({
       ...state,
@@ -136,25 +129,17 @@ export const CreateExercisePlan = (props) => {
         maxHeight: fHeight,
         opacity: 1,
       },
-      periodWorkoutViewStyle: {
-        maxHeight: pHeight + fHeight,
-      },
+      periodWorkoutViewStyle: { maxHeight: pHeight + fHeight },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coachExercisePlanState, dispatch, location, token]);
 
   const handleExePlanNameChange = (event) => {
-    setState({
-      ...state,
-      exePlanName: event.target.value,
-    });
+    setState({ ...state, exePlanName: event.target.value });
   };
 
   const handleExePlanDesChange = (event) => {
-    setState({
-      ...state,
-      exePlanDes: event.target.value,
-    });
+    setState({ ...state, exePlanDes: event.target.value });
   };
 
   const handleCategorySelect = (category, value) => {
@@ -217,10 +202,7 @@ export const CreateExercisePlan = (props) => {
           };
           dispatch(updateExercisePlan(token, payload)).then(() => {
             if (coachExercisePlanState.isExercisePlanUpdated) {
-              console.log(
-                "exe is updated with id: ",
-                coachExercisePlanState.newExercisePlanID
-              );
+              console.log("exe is updated with id: ", coachExercisePlanState.newExercisePlanID);
             } else {
               console.log(
                 "failed to update with: ",
@@ -241,10 +223,7 @@ export const CreateExercisePlan = (props) => {
           };
           dispatch(createExercisePlan(token, payload)).then(() => {
             if (coachExercisePlanState.isExercisePlanCreated) {
-              console.log(
-                "exe is created with id: ",
-                coachExercisePlanState.newExercisePlanID
-              );
+              console.log("exe is created with id: ", coachExercisePlanState.newExercisePlanID);
               setState({
                 ...state,
                 planID: coachExercisePlanState.newExercisePlanID,
@@ -274,18 +253,11 @@ export const CreateExercisePlan = (props) => {
     <div className={style.main_container}>
       <h1 className={style.title}>{t("ExercisePlan.create-exercise-plan")}</h1>
 
-      <p
-        className={style.error_message}
-        style={state.isError ? { fontSize: "1.4rem" } : {}}
-      >
+      <p className={style.error_message} style={state.isError ? { fontSize: "1.4rem" } : {}}>
         {state.missingField} {t("ExercisePlan.is-missing")}.
       </p>
 
-      <form
-        className={style.form}
-        style={state.fullViewStyle}
-        ref={fullViewRef}
-      >
+      <form className={style.form} style={state.fullViewStyle} ref={fullViewRef}>
         <div className={style.general_inputs}>
           <InputControl
             label={t("ExercisePlan.plan-name")}
@@ -329,14 +301,10 @@ export const CreateExercisePlan = (props) => {
               >
                 <div
                   className={`${style.cat_checkbox} ${
-                    state.selectedCategory === "strength"
-                      ? style.cat_checkbox_selected
-                      : ""
+                    state.selectedCategory === "strength" ? style.cat_checkbox_selected : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.strength")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.strength")}</h2>
               </div>
 
               <div
@@ -345,21 +313,15 @@ export const CreateExercisePlan = (props) => {
               >
                 <div
                   className={`${style.cat_checkbox} ${
-                    state.selectedCategory === "cardio"
-                      ? style.cat_checkbox_selected
-                      : ""
+                    state.selectedCategory === "cardio" ? style.cat_checkbox_selected : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.cardio")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.cardio")}</h2>
               </div>
 
               <div
                 className={`${style.category_option} ${style.center_one}`}
-                onClick={() =>
-                  handleCategorySelect("category", "strength & cardio")
-                }
+                onClick={() => handleCategorySelect("category", "strength & cardio")}
               >
                 <div
                   className={`${style.cat_checkbox} ${
@@ -368,9 +330,7 @@ export const CreateExercisePlan = (props) => {
                       : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.strength-cardio")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.strength-cardio")}</h2>
               </div>
 
               <div
@@ -379,14 +339,10 @@ export const CreateExercisePlan = (props) => {
               >
                 <div
                   className={`${style.cat_checkbox} ${
-                    state.selectedCategory === "crossfit"
-                      ? style.cat_checkbox_selected
-                      : ""
+                    state.selectedCategory === "crossfit" ? style.cat_checkbox_selected : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.crossfit")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.crossfit")}</h2>
               </div>
             </div>
           </div>
@@ -401,14 +357,10 @@ export const CreateExercisePlan = (props) => {
               >
                 <div
                   className={`${style.cat_checkbox} ${
-                    state.selectedProgram === "public"
-                      ? style.cat_checkbox_selected
-                      : ""
+                    state.selectedProgram === "public" ? style.cat_checkbox_selected : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.public")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.public")}</h2>
               </div>
               <div
                 className={`${style.category_option} ${style.center_one}`}
@@ -416,14 +368,10 @@ export const CreateExercisePlan = (props) => {
               >
                 <div
                   className={`${style.cat_checkbox} ${
-                    state.selectedProgram === "customer"
-                      ? style.cat_checkbox_selected
-                      : ""
+                    state.selectedProgram === "customer" ? style.cat_checkbox_selected : ""
                   }`}
                 />
-                <h2 className={style.option_name}>
-                  {t("ExercisePlan.customer")}
-                </h2>
+                <h2 className={style.option_name}>{t("ExercisePlan.customer")}</h2>
               </div>
             </div>
           </div>
@@ -431,22 +379,15 @@ export const CreateExercisePlan = (props) => {
       </form>
 
       {/*Exercise Periods*/}
-      <div
-        className={style.exercise_periods_container}
-        ref={periodWorkoutViewRef}
-      >
-        {state.isPeriodDataLoaded && (
-          <PeriodWorkoutView data={state.periodData} />
-        )}
+      <div className={style.exercise_periods_container} ref={periodWorkoutViewRef}>
+        {state.isPeriodDataLoaded && <PeriodWorkoutView data={state.periodData} />}
         {!state.isPeriodDataLoaded && <Loading loading={true} />}
       </div>
       <div
         className={style.btn_main_container}
         style={showCompactView ? { height: 0, overflow: "hidden" } : {}}
       >
-        <button className={style.btn_main}>
-          {t("ExercisePlan.save-plan")}
-        </button>
+        <button className={style.btn_main}>{t("ExercisePlan.save-plan")}</button>
       </div>
     </div>
   );
