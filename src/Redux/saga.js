@@ -1,8 +1,11 @@
 import { takeLatest } from "redux-saga/effects";
 
-function* createRequestHandler({ payload }) {}
+/**
+ * Just for demo purpose
+ */
 
-function* updateRequestHandler({ payload }) {}
+function* createRequestHandler() {}
+function* updateRequestHandler() {}
 
 export default function* saga() {
   yield takeLatest("CREATE_REQUEST", createRequestHandler);

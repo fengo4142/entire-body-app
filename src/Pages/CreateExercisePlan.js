@@ -7,10 +7,10 @@ import {
   updateExercisePlan,
   getExercisePlan,
 } from "../Redux/Component/Coach/ExercisePlan/ExercisePlanActions";
-import { CONSTANTS, getPlanCategory, getPlanProgram } from "../Utils";
 import Loading from "../Components/General/Loading/Loading";
 import InputControl from "../Components/Custom/InputControl";
 import PeriodWorkoutView from "./PeriodAndWorkoutView/PeriodWorkoutView";
+import { CONSTANTS, getPlanCategory, getPlanProgram } from "../Utils";
 import style from "./CreateExercisePlan.module.scss";
 
 export const CreateExercisePlan = (props) => {

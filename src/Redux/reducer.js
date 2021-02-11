@@ -1,3 +1,7 @@
+/**
+ * Just for demo purpose
+ */
+
 const initialState = {
   coachState: {
     coachExercisePlanState: {
