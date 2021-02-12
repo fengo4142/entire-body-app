@@ -27,6 +27,7 @@ import {
   deleteExercise,
   duplicateExerciseResources,
 } from "../../Redux/Component/Coach/ExercisePlan/ExercisePlanActions";
+import ExerciseForm from "../../Components/ExercisePlan/ExerciseForm";
 import { connect } from "react-redux";
 import * as PropTypes from "prop-types";
 import YouTube from "react-youtube";
@@ -138,14 +139,10 @@ class PeriodWorkoutView extends Component {
     this.handleDeletePeriod = this.handleDeletePeriod.bind(this);
     this.handleAddWorkoutToPeriod = this.handleAddWorkoutToPeriod.bind(this);
     this.handleDeleteWorkout = this.handleDeleteWorkout.bind(this);
-    this.handleAddExerciseToWorkout = this.handleAddExerciseToWorkout.bind(
-      this
-    );
+    this.handleAddExerciseToWorkout = this.handleAddExerciseToWorkout.bind(this);
     this.handlePeriodDuplicate = this.handlePeriodDuplicate.bind(this);
     this.handleWorkoutDuplicate = this.handleWorkoutDuplicate.bind(this);
-    this.handleExerciseSelectUpdate = this.handleExerciseSelectUpdate.bind(
-      this
-    );
+    this.handleExerciseSelectUpdate = this.handleExerciseSelectUpdate.bind(this);
     this.handleExerciseDuplicate = this.handleExerciseDuplicate.bind(this);
     this.handleDeleteExercise = this.handleDeleteExercise.bind(this);
     this.handlePeriodCancel = this.handlePeriodCancel.bind(this);
@@ -214,13 +211,7 @@ class PeriodWorkoutView extends Component {
     }
   }
 
-  handleAddInfoClick = (
-    isNewForm,
-    exe,
-    periodIndex,
-    workoutIndex,
-    exerciseIndex
-  ) => {
+  handleAddInfoClick = (isNewForm, exe, periodIndex, workoutIndex, exerciseIndex) => {
     if (!isNewForm) {
       this.setState({
         showAddInfoPopup: true,
@@ -281,22 +272,17 @@ class PeriodWorkoutView extends Component {
       period_id: this.state.periodList[periodIndex].id,
     };
 
-    this.props
-      .duplicateExerciseResources(this.props.token, payload)
-      .then(() => {
-        if (this.props.coachExercisePlanState.isDuplicateSuccess) {
-          console.log(
-            this.props.coachExercisePlanState.duplicatedResponse,
-            "dupe"
-          );
-          let newPeriod = this.props.coachExercisePlanState.duplicatedResponse;
-          this.setState({
-            periodList: [...this.state.periodList, newPeriod],
-          });
-        } else {
-          console.log("duplication failed");
-        }
-      });
+    this.props.duplicateExerciseResources(this.props.token, payload).then(() => {
+      if (this.props.coachExercisePlanState.isDuplicateSuccess) {
+        console.log(this.props.coachExercisePlanState.duplicatedResponse, "dupe");
+        let newPeriod = this.props.coachExercisePlanState.duplicatedResponse;
+        this.setState({
+          periodList: [...this.state.periodList, newPeriod],
+        });
+      } else {
+        console.log("duplication failed");
+      }
+    });
   };
 
   handleWorkoutDuplicate = (e, periodIndex, workoutIndex) => {
@@ -317,34 +303,29 @@ class PeriodWorkoutView extends Component {
       schedule_time: 1,
     };
 
-    this.props
-      .duplicateExerciseResources(this.props.token, newWorkout)
-      .then(() => {
-        if (this.props.coachExercisePlanState.isDuplicateSuccess) {
-          let tmpWorkout = this.props.coachExercisePlanState.duplicatedResponse;
-          let targetPeriod = this.state.periodList[periodIndex];
-          targetPeriod.workouts = [
-            ...this.state.periodList[periodIndex].workouts,
-            tmpWorkout,
-          ];
-          let newPeriodList = this.state.periodList;
-          newPeriodList[periodIndex] = targetPeriod;
+    this.props.duplicateExerciseResources(this.props.token, newWorkout).then(() => {
+      if (this.props.coachExercisePlanState.isDuplicateSuccess) {
+        let tmpWorkout = this.props.coachExercisePlanState.duplicatedResponse;
+        let targetPeriod = this.state.periodList[periodIndex];
+        targetPeriod.workouts = [...this.state.periodList[periodIndex].workouts, tmpWorkout];
+        let newPeriodList = this.state.periodList;
+        newPeriodList[periodIndex] = targetPeriod;
 
-          this.setState({
-            periodList: newPeriodList,
-          });
-        } else {
-          console.log("workout duplicate failed ");
-        }
-      });
+        this.setState({
+          periodList: newPeriodList,
+        });
+      } else {
+        console.log("workout duplicate failed ");
+      }
+    });
   };
 
   handleExerciseDuplicate = (e, periodIndex, workoutIndex, exerciseIndex) => {
     e.preventDefault();
     e.stopPropagation();
-    let targetExercise = this.state.periodList[periodIndex].workouts[
-      workoutIndex
-    ].exercises[exerciseIndex];
+    let targetExercise = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
+      exerciseIndex
+    ];
 
     let payload = {
       exercise_id: targetExercise.exercise_id,
@@ -355,23 +336,18 @@ class PeriodWorkoutView extends Component {
       resistance: targetExercise.resistance,
       rest: targetExercise.rest,
       info: targetExercise.info,
-      order:
-        this.state.periodList[periodIndex].workouts[workoutIndex].exercises
-          .length + 1,
+      order: this.state.periodList[periodIndex].workouts[workoutIndex].exercises.length + 1,
       created_at: Date.now() / 1000,
     };
 
     this.props.createExercise(this.props.token, payload).then(() => {
       if (this.props.coachExercisePlanState.isExerciseCreated) {
         let targetedExercises = [
-          ...this.state.periodList[periodIndex].workouts[workoutIndex]
-            .exercises,
+          ...this.state.periodList[periodIndex].workouts[workoutIndex].exercises,
           this.props.coachExercisePlanState.exercise,
         ];
         let tmpList = this.state.periodList;
-        tmpList[periodIndex].workouts[
-          workoutIndex
-        ].exercises = targetedExercises;
+        tmpList[periodIndex].workouts[workoutIndex].exercises = targetedExercises;
         this.setState({
           periodList: tmpList,
           showExerciseForm: false,
@@ -396,10 +372,7 @@ class PeriodWorkoutView extends Component {
   };
 
   handlePeriod = (periodIndex, isButtonClicked) => {
-    if (
-      this.state.periodList[this.state.periodList.length - 1].id === -1 &&
-      isButtonClicked
-    ) {
+    if (this.state.periodList[this.state.periodList.length - 1].id === -1 && isButtonClicked) {
       if (this.state.newPeriodName === "") {
         this.setState({
           isNewPeriodNameEmpty: true,
@@ -682,8 +655,7 @@ class PeriodWorkoutView extends Component {
       let payload = {
         name: this.state.periodList[periodIndex].workouts[workoutIndex].name,
         info: this.state.periodList[periodIndex].workouts[workoutIndex].info,
-        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex]
-          .id,
+        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex].id,
       };
 
       this.props.updateWorkout(this.props.token, payload).then(() => {
@@ -721,16 +693,12 @@ class PeriodWorkoutView extends Component {
 
           this.props.createWorkout(this.props.token, newWorkout).then(() => {
             if (this.props.coachExercisePlanState.isExerciseWorkoutCreated) {
-              let tmpWorkout = this.props.coachExercisePlanState
-                .exerciseWorkOut;
+              let tmpWorkout = this.props.coachExercisePlanState.exerciseWorkOut;
               tmpWorkout["exercises"] = [];
 
               let targetPeriod = this.state.periodList[periodIndex];
 
-              targetPeriod.workouts = [
-                ...this.state.periodList[periodIndex].workouts,
-                tmpWorkout,
-              ];
+              targetPeriod.workouts = [...this.state.periodList[periodIndex].workouts, tmpWorkout];
               let newPeriodList = this.state.periodList;
 
               newPeriodList[periodIndex] = targetPeriod;
@@ -796,8 +764,7 @@ class PeriodWorkoutView extends Component {
 
     if (periodIndex !== -1 && workoutIndex !== -1) {
       let payload = {
-        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex]
-          .id,
+        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex].id,
       };
       this.props.deleteWorkout(this.props.token, payload).then(() => {
         if (this.props.coachExercisePlanState.isExerciseWorkoutDeleted) {
@@ -826,17 +793,13 @@ class PeriodWorkoutView extends Component {
 
     if (periodIndex !== -1 && workoutIndex !== -1 && exerciseIndex !== -1) {
       let payload = {
-        id: this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
-          exerciseIndex
-        ].id,
+        id: this.state.periodList[periodIndex].workouts[workoutIndex].exercises[exerciseIndex].id,
       };
 
       this.props.deleteExercise(this.props.token, payload).then(() => {
         if (this.props.coachExercisePlanState.isExerciseDeleted) {
           //Get the list of exe
-          let tmpExeList = this.state.periodList[periodIndex].workouts[
-            workoutIndex
-          ].exercises;
+          let tmpExeList = this.state.periodList[periodIndex].workouts[workoutIndex].exercises;
           //remove the one that is deleted
           tmpExeList.splice(exerciseIndex, 1);
           //get list of workouts
@@ -908,9 +871,7 @@ class PeriodWorkoutView extends Component {
             return;
           }
 
-          let workoutID = this.state.periodList[periodIndex].workouts[
-            workoutIndex
-          ].id;
+          let workoutID = this.state.periodList[periodIndex].workouts[workoutIndex].id;
 
           let payload = {
             exercise_id: this.state.selectedExercise,
@@ -921,23 +882,18 @@ class PeriodWorkoutView extends Component {
             resistance: this.state.exerciseResistance,
             rest: this.state.exerciseRest,
             info: this.state.addExeInfo,
-            order:
-              this.state.periodList[periodIndex].workouts[workoutIndex]
-                .exercises.length + 1,
+            order: this.state.periodList[periodIndex].workouts[workoutIndex].exercises.length + 1,
             created_at: Date.now() / 1000,
           };
 
           this.props.createExercise(this.props.token, payload).then(() => {
             if (this.props.coachExercisePlanState.isExerciseCreated) {
               let targetedExercises = [
-                ...this.state.periodList[periodIndex].workouts[workoutIndex]
-                  .exercises,
+                ...this.state.periodList[periodIndex].workouts[workoutIndex].exercises,
                 this.props.coachExercisePlanState.exercise,
               ];
               let tmpList = this.state.periodList;
-              tmpList[periodIndex].workouts[
-                workoutIndex
-              ].exercises = targetedExercises;
+              tmpList[periodIndex].workouts[workoutIndex].exercises = targetedExercises;
               this.setState({
                 periodList: tmpList,
                 showExerciseForm: false,
@@ -965,13 +921,13 @@ class PeriodWorkoutView extends Component {
         }
       );
     } else if (isUpdating) {
-      let updatedExe = this.state.periodList[periodIndex].workouts[workoutIndex]
-        .exercises[exerciseIndex];
+      let updatedExe = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
+        exerciseIndex
+      ];
       let payload = {
         id: updatedExe.id,
         exercise_id: updatedExe.exercise_id,
-        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex]
-          .id,
+        workout_id: this.state.periodList[periodIndex].workouts[workoutIndex].id,
         sets: parseInt(updatedExe.sets),
         reps: updatedExe.reps,
         rest: updatedExe.rest,
@@ -1042,9 +998,7 @@ class PeriodWorkoutView extends Component {
     let tempIndex = [];
     let tempStyle = [];
 
-    if (
-      this.state.periodCollapseIndex.length === this.state.periodList.length
-    ) {
+    if (this.state.periodCollapseIndex.length === this.state.periodList.length) {
       this.setState({
         periodCollapseIndex: [],
       });
@@ -1084,9 +1038,7 @@ class PeriodWorkoutView extends Component {
       return;
     }
     // filter out the currently dragged item
-    let items = this.state.periodList.filter(
-      (item) => item !== this.draggedItem
-    );
+    let items = this.state.periodList.filter((item) => item !== this.draggedItem);
 
     // add the dragged item after the dragged over item
     items.splice(index, 0, this.draggedItem);
@@ -1102,10 +1054,7 @@ class PeriodWorkoutView extends Component {
     e.preventDefault();
     e.stopPropagation();
 
-    if (
-      this.state.selectedPeriodIndex === "" &&
-      this.state.nestedSelectedPeriodIndex === ""
-    ) {
+    if (this.state.selectedPeriodIndex === "" && this.state.nestedSelectedPeriodIndex === "") {
       this.setState({
         isError: true,
         missingField: "You need to select a period. Period ",
@@ -1146,18 +1095,14 @@ class PeriodWorkoutView extends Component {
           let newWorkout = {
             name: this.state.newWorkoutName,
             description: this.state.newWorkoutDesc,
-            exercises: this.state.periodList[
-              this.state.nestedSelectedPeriodIndex
-            ].workouts[this.state.nestedSelectedWorkoutIndex].exercises,
+            exercises: this.state.periodList[this.state.nestedSelectedPeriodIndex].workouts[
+              this.state.nestedSelectedWorkoutIndex
+            ].exercises,
           };
 
-          let targetPeriod = this.state.periodList[
-            this.state.nestedSelectedPeriodIndex
-          ];
+          let targetPeriod = this.state.periodList[this.state.nestedSelectedPeriodIndex];
 
-          targetPeriod.workouts[
-            this.state.nestedSelectedWorkoutIndex
-          ] = newWorkout;
+          targetPeriod.workouts[this.state.nestedSelectedWorkoutIndex] = newWorkout;
           let newPeriodList = this.state.periodList;
 
           newPeriodList[this.state.nestedSelectedPeriodIndex] = targetPeriod;
@@ -1184,9 +1129,7 @@ class PeriodWorkoutView extends Component {
             exercises: [],
           };
 
-          let targetPeriod = this.state.periodList[
-            this.state.selectedPeriodIndex
-          ];
+          let targetPeriod = this.state.periodList[this.state.selectedPeriodIndex];
 
           targetPeriod.workouts = [
             ...this.state.periodList[this.state.selectedPeriodIndex].workouts,
@@ -1309,8 +1252,7 @@ class PeriodWorkoutView extends Component {
         } else {
           newExercise = {
             name: this.state.exerciseList[this.state.selectedExercise].name,
-            description: this.state.exerciseList[this.state.selectedExercise]
-              .description,
+            description: this.state.exerciseList[this.state.selectedExercise].description,
             sets: this.state.exerciseSets,
             reps: this.state.exerciseReps,
             resistance: this.state.exerciseResistance,
@@ -1326,25 +1268,18 @@ class PeriodWorkoutView extends Component {
           this.state.nestedSelectedExerciseIndex !== ""
         ) {
           //edit the current one
-          let targetedPeriod = this.state.periodList[
-            this.state.nestedSelectedPeriodIndex
-          ];
-          targetedPeriod.workouts[
-            this.state.nestedSelectedWorkoutIndex
-          ].exercises[this.state.nestedSelectedExerciseIndex] = newExercise;
+          let targetedPeriod = this.state.periodList[this.state.nestedSelectedPeriodIndex];
+          targetedPeriod.workouts[this.state.nestedSelectedWorkoutIndex].exercises[
+            this.state.nestedSelectedExerciseIndex
+          ] = newExercise;
 
           newPeriodList = this.state.periodList;
 
           newPeriodList[this.state.nestedSelectedPeriodIndex] = targetedPeriod;
         } else {
-          let targetedPeriod = this.state.periodList[
-            this.state.nestedSelectedPeriodIndex
-          ];
-          targetedPeriod.workouts[
-            this.state.nestedSelectedWorkoutIndex
-          ].exercises = [
-            ...targetedPeriod.workouts[this.state.nestedSelectedWorkoutIndex]
-              .exercises,
+          let targetedPeriod = this.state.periodList[this.state.nestedSelectedPeriodIndex];
+          targetedPeriod.workouts[this.state.nestedSelectedWorkoutIndex].exercises = [
+            ...targetedPeriod.workouts[this.state.nestedSelectedWorkoutIndex].exercises,
             newExercise,
           ];
 
@@ -1663,8 +1598,7 @@ class PeriodWorkoutView extends Component {
 
       let targetPeriod = this.state.periodList[this.state.exeInfoPeriodIndex];
       let targetWorkout = targetPeriod.workouts[this.state.exeInfoWorkoutIndex];
-      let targetExercise =
-        targetWorkout.exercises[this.state.exeInfoExerciseIndex];
+      let targetExercise = targetWorkout.exercises[this.state.exeInfoExerciseIndex];
 
       targetWorkout.exercises[this.state.exeInfoExerciseIndex] = {
         created_at: targetExercise.created_at,
@@ -1731,15 +1665,13 @@ class PeriodWorkoutView extends Component {
           shouldUpdateExeOnServer: false,
         },
         () => {
-          let updatedExe = this.state.periodList[periodIndex].workouts[
-            workoutIndex
-          ].exercises[exerciseIndex];
+          let updatedExe = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
+            exerciseIndex
+          ];
           let payload = {
             id: updatedExe.id,
             exercise_id: item.id,
-            workout_id: this.state.periodList[periodIndex].workouts[
-              workoutIndex
-            ].id,
+            workout_id: this.state.periodList[periodIndex].workouts[workoutIndex].id,
             sets: parseInt(updatedExe.sets),
             reps: updatedExe.reps,
             rest: updatedExe.rest,
@@ -1768,12 +1700,7 @@ class PeriodWorkoutView extends Component {
   };
 
   handleExerciseSelectUpdate = (periodIndex, workoutIndex, exerciseIndex) => {
-    console.log(
-      "called in handleExerciseSelectUpdate",
-      periodIndex,
-      workoutIndex,
-      exerciseIndex
-    );
+    console.log("called in handleExerciseSelectUpdate", periodIndex, workoutIndex, exerciseIndex);
     this.setState({
       shouldUpdateExeOnServer: true,
       exePeriodIndex: periodIndex,
@@ -1791,32 +1718,22 @@ class PeriodWorkoutView extends Component {
     });
   };
 
-  handleOrderChange = (
-    e,
-    direction,
-    type,
-    periodIndex,
-    workoutIndex,
-    exerciseIndex
-  ) => {
+  handleOrderChange = (e, direction, type, periodIndex, workoutIndex, exerciseIndex) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (type === "exercise") {
       let payload, payloadOther, tmp, tmpOther, updatedPeriodList;
-      if (
-        this.state.periodList[periodIndex].workouts[workoutIndex].exercises
-          .length === 1
-      ) {
+      if (this.state.periodList[periodIndex].workouts[workoutIndex].exercises.length === 1) {
         //one item only no need to do any re ordering
         return;
       }
 
       if (direction === "increase") {
-        tmp = this.state.periodList[periodIndex].workouts[workoutIndex]
-          .exercises[exerciseIndex];
-        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex]
-          .exercises[exerciseIndex + 1];
+        tmp = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[exerciseIndex];
+        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
+          exerciseIndex + 1
+        ];
 
         payload = {
           id: tmp.id,
@@ -1830,10 +1747,10 @@ class PeriodWorkoutView extends Component {
       }
 
       if (direction === "decrease") {
-        tmp = this.state.periodList[periodIndex].workouts[workoutIndex]
-          .exercises[exerciseIndex];
-        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex]
-          .exercises[exerciseIndex - 1];
+        tmp = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[exerciseIndex];
+        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex].exercises[
+          exerciseIndex - 1
+        ];
 
         payload = {
           id: tmp.id,
@@ -1903,9 +1820,7 @@ class PeriodWorkoutView extends Component {
 
       if (direction === "increase") {
         tmp = this.state.periodList[periodIndex].workouts[workoutIndex];
-        tmpOther = this.state.periodList[periodIndex].workouts[
-          workoutIndex + 1
-        ];
+        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex + 1];
 
         payload = {
           id: tmp.period_workout_id,
@@ -1920,9 +1835,7 @@ class PeriodWorkoutView extends Component {
 
       if (direction === "decrease") {
         tmp = this.state.periodList[periodIndex].workouts[workoutIndex];
-        tmpOther = this.state.periodList[periodIndex].workouts[
-          workoutIndex - 1
-        ];
+        tmpOther = this.state.periodList[periodIndex].workouts[workoutIndex - 1];
 
         payload = {
           id: tmp.period_workout_id,
@@ -1939,45 +1852,33 @@ class PeriodWorkoutView extends Component {
 
       this.props.updateWorkoutOrder(this.props.token, payload).then(() => {
         if (this.props.coachExercisePlanState.isExerciseWorkoutOrderUpdated) {
-          this.props
-            .updateWorkoutOrder(this.props.token, payloadOther)
-            .then(() => {
-              if (
-                this.props.coachExercisePlanState.isExerciseWorkoutOrderUpdated
-              ) {
-                if (direction === "increase") {
-                  tmp.workout_number = tmp.workout_number + 1;
-                  tmpOther.workout_number = tmpOther.workout_number - 1;
-                  updatedPeriodList = this.state.periodList;
-                  updatedPeriodList[periodIndex].workouts[
-                    workoutIndex
-                  ] = tmpOther;
-                  updatedPeriodList[periodIndex].workouts[
-                    workoutIndex + 1
-                  ] = tmp;
-                }
-                if (direction === "decrease") {
-                  tmp.workout_number = tmp.workout_number - 1;
-                  tmpOther.workout_number = tmpOther.workout_number + 1;
-                  updatedPeriodList = this.state.periodList;
-                  updatedPeriodList[periodIndex].workouts[
-                    workoutIndex
-                  ] = tmpOther;
-                  updatedPeriodList[periodIndex].workouts[
-                    workoutIndex - 1
-                  ] = tmp;
-                }
-
-                this.setState({
-                  periodList: updatedPeriodList,
-                });
-              } else {
-                console.log(
-                  "exercise update 1 failed with: ",
-                  this.props.coachExercisePlanState.exerciseWorkoutUpdateError
-                );
+          this.props.updateWorkoutOrder(this.props.token, payloadOther).then(() => {
+            if (this.props.coachExercisePlanState.isExerciseWorkoutOrderUpdated) {
+              if (direction === "increase") {
+                tmp.workout_number = tmp.workout_number + 1;
+                tmpOther.workout_number = tmpOther.workout_number - 1;
+                updatedPeriodList = this.state.periodList;
+                updatedPeriodList[periodIndex].workouts[workoutIndex] = tmpOther;
+                updatedPeriodList[periodIndex].workouts[workoutIndex + 1] = tmp;
               }
-            });
+              if (direction === "decrease") {
+                tmp.workout_number = tmp.workout_number - 1;
+                tmpOther.workout_number = tmpOther.workout_number + 1;
+                updatedPeriodList = this.state.periodList;
+                updatedPeriodList[periodIndex].workouts[workoutIndex] = tmpOther;
+                updatedPeriodList[periodIndex].workouts[workoutIndex - 1] = tmp;
+              }
+
+              this.setState({
+                periodList: updatedPeriodList,
+              });
+            } else {
+              console.log(
+                "exercise update 1 failed with: ",
+                this.props.coachExercisePlanState.exerciseWorkoutUpdateError
+              );
+            }
+          });
         } else {
           console.log(
             "exercise update failed with: ",
@@ -2122,6 +2023,24 @@ class PeriodWorkoutView extends Component {
     const { t } = this.props;
     return (
       <div className={style.main_container}>
+        <div>
+          <ExerciseForm
+            periodIndex={this.state.periodIndex}
+            workoutIndex={this.state.workoutIndex}
+            newExeIDSelected={this.state.newExeIDSelected}
+            exerciseList={this.state.exerciseList}
+            isEmptySets={this.state.isEmptySets}
+            exerciseSets={this.state.exerciseSets}
+            exerciseReps={this.state.exerciseReps}
+            exerciseRest={this.state.exerciseRest}
+            isEmptyResistance={this.state.isEmptyResistance}
+            handleSubmit={this.handleCreateNewExercise}
+            handleExerciseSelect={this.handleExerciseSelect}
+            handleExerciseInfoClick={this.handleExerciseInfoClick}
+            handleInput={this.handleInput}
+            handleAddInfoClick={this.handleAddInfoClick}
+          />
+        </div>
         <div className={style.exe_planner_container}>
           {this.state.periodList.map((period, periodIndex) => (
             <div
@@ -2170,9 +2089,7 @@ class PeriodWorkoutView extends Component {
                     <FontAwesomeIcon
                       icon={faCopy}
                       className={style.duplicate}
-                      onClick={(e) =>
-                        this.handlePeriodDuplicate(e, periodIndex)
-                      }
+                      onClick={(e) => this.handlePeriodDuplicate(e, periodIndex)}
                     />
                   )}
                   {period.id !== -1 && (
@@ -2189,24 +2106,15 @@ class PeriodWorkoutView extends Component {
                     />
                   )}
 
-                  {period.id !== -1 &&
-                    this.state.periodList.length > 1 &&
-                    periodIndex !== 0 && (
-                      <FontAwesomeIcon
-                        icon={faArrowAltCircleUp}
-                        className={style.reorder_arrow}
-                        onClick={(e) =>
-                          this.handleOrderChange(
-                            e,
-                            "decrease",
-                            "period",
-                            periodIndex,
-                            -1,
-                            -1
-                          )
-                        }
-                      />
-                    )}
+                  {period.id !== -1 && this.state.periodList.length > 1 && periodIndex !== 0 && (
+                    <FontAwesomeIcon
+                      icon={faArrowAltCircleUp}
+                      className={style.reorder_arrow}
+                      onClick={(e) =>
+                        this.handleOrderChange(e, "decrease", "period", periodIndex, -1, -1)
+                      }
+                    />
+                  )}
 
                   {period.id !== -1 &&
                     this.state.periodList.length > 1 &&
@@ -2215,14 +2123,7 @@ class PeriodWorkoutView extends Component {
                         icon={faArrowAltCircleDown}
                         className={style.reorder_arrow}
                         onClick={(e) =>
-                          this.handleOrderChange(
-                            e,
-                            "increase",
-                            "period",
-                            periodIndex,
-                            -1,
-                            -1
-                          )
+                          this.handleOrderChange(e, "increase", "period", periodIndex, -1, -1)
                         }
                       />
                     )}
@@ -2239,8 +2140,7 @@ class PeriodWorkoutView extends Component {
                           : t("ExercisePlan.period-name")
                         : this.state.isNewPeriodNameEmpty
                         ? t("ExercisePlan.period-name-required")
-                        : this.state.isError &&
-                          this.state.errorLocation === periodIndex
+                        : this.state.isError && this.state.errorLocation === periodIndex
                         ? t("ExercisePlan.period-name-required")
                         : t("ExercisePlan.period-name")
                     }
@@ -2248,8 +2148,7 @@ class PeriodWorkoutView extends Component {
                     isError={
                       period.id === -1
                         ? this.state.isNewPeriodNameEmpty
-                        : this.state.isError &&
-                          this.state.errorLocation === periodIndex
+                        : this.state.isError && this.state.errorLocation === periodIndex
                     }
                     className={style.input_control_workout_name}
                   >
@@ -2273,20 +2172,13 @@ class PeriodWorkoutView extends Component {
                   <span className={style.workout_filler} />
                   <InputControl
                     label={t("ExercisePlan.period-desc")}
-                    isEmpty={
-                      period.info.length < 1 ||
-                      period.info === "not provided - 43S24Uvaui"
-                    }
+                    isEmpty={period.info.length < 1 || period.info === "not provided - 43S24Uvaui"}
                     isError={false}
                     className={style.input_control_workout_desc}
                   >
                     <input
                       className={style.new_workout_description}
-                      value={
-                        period.info === "not provided - 43S24Uvaui"
-                          ? ""
-                          : period.info
-                      }
+                      value={period.info === "not provided - 43S24Uvaui" ? "" : period.info}
                       onChange={(evt) =>
                         this.handleUpdate(
                           evt,
@@ -2312,28 +2204,19 @@ class PeriodWorkoutView extends Component {
                   className={style.workout_list}
                   key={workout.id}
                   style={
-                    this.state.workoutCollapseIndex.includes(
-                      periodIndex + "-" + workoutIndex
-                    )
+                    this.state.workoutCollapseIndex.includes(periodIndex + "-" + workoutIndex)
                       ? this.state.workoutHeightStyle
                       : {}
                   }
                 >
-                  <div
-                    className={style.workout_header}
-                    ref={this.workoutHeaderRef}
-                  >
+                  <div className={style.workout_header} ref={this.workoutHeaderRef}>
                     <div
                       className={style.collapse_icon_wrapper_workout}
-                      onClick={() =>
-                        this.handleWorkoutCollapse(periodIndex, workoutIndex)
-                      }
+                      onClick={() => this.handleWorkoutCollapse(periodIndex, workoutIndex)}
                     >
                       <FontAwesomeIcon
                         icon={
-                          this.state.workoutCollapseIndex.includes(
-                            periodIndex + "-" + workoutIndex
-                          )
+                          this.state.workoutCollapseIndex.includes(periodIndex + "-" + workoutIndex)
                             ? faAngleRight
                             : faAngleDown
                         }
@@ -2353,13 +2236,7 @@ class PeriodWorkoutView extends Component {
                         <FontAwesomeIcon
                           icon={faCopy}
                           className={style.duplicate}
-                          onClick={(e) =>
-                            this.handleWorkoutDuplicate(
-                              e,
-                              periodIndex,
-                              workoutIndex
-                            )
-                          }
+                          onClick={(e) => this.handleWorkoutDuplicate(e, periodIndex, workoutIndex)}
                         />
                       )}
                       {workout.id !== -1 && (
@@ -2373,34 +2250,26 @@ class PeriodWorkoutView extends Component {
                         <FontAwesomeIcon
                           icon={faTrashAlt}
                           className={style.delete}
+                          onClick={(e) => this.handleDeleteWorkout(e, periodIndex, workoutIndex)}
+                        />
+                      )}
+
+                      {workout.id !== -1 && period.workouts.length > 1 && workoutIndex !== 0 && (
+                        <FontAwesomeIcon
+                          icon={faArrowAltCircleUp}
+                          className={style.reorder_arrow}
                           onClick={(e) =>
-                            this.handleDeleteWorkout(
+                            this.handleOrderChange(
                               e,
+                              "decrease",
+                              "workout",
                               periodIndex,
-                              workoutIndex
+                              workoutIndex,
+                              -1
                             )
                           }
                         />
                       )}
-
-                      {workout.id !== -1 &&
-                        period.workouts.length > 1 &&
-                        workoutIndex !== 0 && (
-                          <FontAwesomeIcon
-                            icon={faArrowAltCircleUp}
-                            className={style.reorder_arrow}
-                            onClick={(e) =>
-                              this.handleOrderChange(
-                                e,
-                                "decrease",
-                                "workout",
-                                periodIndex,
-                                workoutIndex,
-                                -1
-                              )
-                            }
-                          />
-                        )}
 
                       {workout.id !== -1 &&
                         period.workouts.length > 1 &&
@@ -2441,13 +2310,7 @@ class PeriodWorkoutView extends Component {
                           type="text"
                           value={workout.name}
                           onChange={(evt) =>
-                            this.handleUpdate(
-                              evt,
-                              "workout_name",
-                              periodIndex,
-                              workoutIndex,
-                              -1
-                            )
+                            this.handleUpdate(evt, "workout_name", periodIndex, workoutIndex, -1)
                           }
                           onBlur={(e) =>
                             this.handleAddWorkoutToPeriod(
@@ -2466,27 +2329,16 @@ class PeriodWorkoutView extends Component {
                       <InputControl
                         label={t("ExercisePlan.workout-desc")}
                         isEmpty={
-                          workout.info.length < 1 ||
-                          workout.info === "not provided - 43S24Uvaui"
+                          workout.info.length < 1 || workout.info === "not provided - 43S24Uvaui"
                         }
                         isError={false}
                         className={style.input_control_workout_desc}
                       >
                         <input
                           className={style.new_workout_description}
-                          value={
-                            workout.info === "not provided - 43S24Uvaui"
-                              ? ""
-                              : workout.info
-                          }
+                          value={workout.info === "not provided - 43S24Uvaui" ? "" : workout.info}
                           onChange={(evt) =>
-                            this.handleUpdate(
-                              evt,
-                              "workout_desc",
-                              periodIndex,
-                              workoutIndex,
-                              -1
-                            )
+                            this.handleUpdate(evt, "workout_desc", periodIndex, workoutIndex, -1)
                           }
                           onBlur={(e) =>
                             this.handleAddWorkoutToPeriod(
@@ -2559,8 +2411,20 @@ class PeriodWorkoutView extends Component {
                             icon={faTrashAlt}
                             className={style.delete}
                             onClick={(e) =>
-                              this.handleDeleteExercise(
+                              this.handleDeleteExercise(e, periodIndex, workoutIndex, exerciseIndex)
+                            }
+                          />
+                        )}
+
+                        {exe.id !== -1 && workout.exercises.length > 1 && exerciseIndex !== 0 && (
+                          <FontAwesomeIcon
+                            icon={faArrowAltCircleUp}
+                            className={style.reorder_arrow}
+                            onClick={(e) =>
+                              this.handleOrderChange(
                                 e,
+                                "decrease",
+                                "exercise",
                                 periodIndex,
                                 workoutIndex,
                                 exerciseIndex
@@ -2568,25 +2432,6 @@ class PeriodWorkoutView extends Component {
                             }
                           />
                         )}
-
-                        {exe.id !== -1 &&
-                          workout.exercises.length > 1 &&
-                          exerciseIndex !== 0 && (
-                            <FontAwesomeIcon
-                              icon={faArrowAltCircleUp}
-                              className={style.reorder_arrow}
-                              onClick={(e) =>
-                                this.handleOrderChange(
-                                  e,
-                                  "decrease",
-                                  "exercise",
-                                  periodIndex,
-                                  workoutIndex,
-                                  exerciseIndex
-                                )
-                              }
-                            />
-                          )}
 
                         {exe.id !== -1 &&
                           workout.exercises.length > 1 &&
@@ -2609,9 +2454,7 @@ class PeriodWorkoutView extends Component {
                       </div>
 
                       <form
-                        onSubmit={(event) =>
-                          this.handleCreateNewExercise(event)
-                        }
+                        onSubmit={(event) => this.handleCreateNewExercise(event)}
                         className={`${style.form_exercise} ${style.exercise_list}`}
                       >
                         <div
@@ -2693,21 +2536,14 @@ class PeriodWorkoutView extends Component {
                         <span className={style.new_period_time_filler} />
                         <InputControl
                           label={t("ExercisePlan.reps")}
-                          isEmpty={
-                            exe.reps.length < 1 ||
-                            exe.reps === "not provided - 43S24Uvaui"
-                          }
+                          isEmpty={exe.reps.length < 1 || exe.reps === "not provided - 43S24Uvaui"}
                           isError={false}
                           className={style.input_control_exe}
                         >
                           <input
                             className={style.exe_sets_reps_resist_input}
                             type="text"
-                            value={
-                              exe.reps === "not provided - 43S24Uvaui"
-                                ? ""
-                                : exe.reps
-                            }
+                            value={exe.reps === "not provided - 43S24Uvaui" ? "" : exe.reps}
                             onChange={(evt) =>
                               this.handleUpdate(
                                 evt,
@@ -2733,21 +2569,14 @@ class PeriodWorkoutView extends Component {
                         <span className={style.new_period_time_filler} />
                         <InputControl
                           label={t("ExercisePlan.rest")}
-                          isEmpty={
-                            exe.rest.length < 1 ||
-                            exe.rest === "not provided - 43S24Uvaui"
-                          }
+                          isEmpty={exe.rest.length < 1 || exe.rest === "not provided - 43S24Uvaui"}
                           isError={false}
                           className={style.input_control_exe}
                         >
                           <input
                             className={style.exe_sets_reps_resist_input}
                             type="text"
-                            value={
-                              exe.rest === "not provided - 43S24Uvaui"
-                                ? ""
-                                : exe.rest
-                            }
+                            value={exe.rest === "not provided - 43S24Uvaui" ? "" : exe.rest}
                             onChange={(evt) =>
                               this.handleUpdate(
                                 evt,
@@ -2796,134 +2625,24 @@ class PeriodWorkoutView extends Component {
                   {/* CREATE NEW EXERCISE FORM */}
                   {/**/}
                   {/**/}
-                  {this.state.showExerciseForm &&
-                    this.state.addExerciseToWorkoutIndex ===
-                      periodIndex + "-" + workoutIndex && (
-                      <div
-                        className={style.create_exercise_container}
-                        style={
-                          this.state.showExerciseForm &&
-                          this.state.addExerciseToWorkoutIndex ===
-                            periodIndex + "-" + workoutIndex
-                            ? {}
-                            : { display: "none" }
-                        }
-                      >
-                        <h1 className={style.exe_number}>
-                          {t("ExercisePlan.exercise")}{" "}
-                          {workout.exercises.length + 1}
-                        </h1>
-
-                        <form
-                          onSubmit={(event) =>
-                            this.handleCreateNewExercise(event)
-                          }
-                          className={`${style.form_exercise} ${style.exercise_list}`}
-                        >
-                          <InputControl
-                            label={
-                              this.state.isExerciseNotSelected
-                                ? "Exercise (Required)"
-                                : t("ExercisePlan.exercise")
-                            }
-                            isEmpty={false}
-                            isError={this.state.isExerciseNotSelected}
-                            className={style.input_control_exe_dropdown}
-                          >
-                            <Dropdown
-                              selected={this.state.newExeIDSelected}
-                              headerBgColor={"white"}
-                              width={"100%"}
-                              paddingVertical={"0.2rem"}
-                              paddingHorizontal={"1rem"}
-                              maxHeight={"30rem"}
-                              searchable
-                              showInfo
-                              itemData={this.state.exerciseList}
-                              childStyleClassName={style.exercise}
-                              itemClick={this.handleExerciseSelect}
-                              onInfoClick={this.handleExerciseInfoClick}
-                            >
-                              {this.state.exerciseList.map((exe) => (
-                                <div key={exe.id} className={style.exercise}>
-                                  {exe.name}
-                                </div>
-                              ))}
-                            </Dropdown>
-                          </InputControl>
-                          <span className={style.new_period_time_filler} />
-                          <InputControl
-                            label={
-                              this.state.isEmptySets
-                                ? "Sets (Required)"
-                                : "Sets"
-                            }
-                            isEmpty={this.state.exerciseSets.length < 1}
-                            isError={this.state.isEmptySets}
-                            className={style.input_control_exe}
-                          >
-                            <input
-                              className={style.exe_sets_reps_resist_input}
-                              type="number"
-                              value={this.state.exerciseSets}
-                              onChange={(evt) =>
-                                this.handleInput(evt, "exercise_sets")
-                              }
-                            />
-                          </InputControl>
-                          <span className={style.new_period_time_filler} />
-                          <InputControl
-                            label={t("ExercisePlan.reps")}
-                            isEmpty={this.state.exerciseReps.length < 1}
-                            isError={this.state.isEmptyReps}
-                            className={style.input_control_exe}
-                          >
-                            <input
-                              className={style.exe_sets_reps_resist_input}
-                              type="text"
-                              value={this.state.exerciseReps}
-                              onChange={(evt) =>
-                                this.handleInput(evt, "exercise_reps")
-                              }
-                            />
-                          </InputControl>
-                          <span className={style.new_period_time_filler} />
-                          <InputControl
-                            label={t("ExercisePlan.rest")}
-                            isEmpty={this.state.exerciseRest.length < 1}
-                            isError={this.state.isEmptyResistance}
-                            className={style.input_control_exe}
-                          >
-                            <input
-                              className={style.exe_sets_reps_resist_input}
-                              type="text"
-                              value={this.state.exerciseRest}
-                              onChange={(evt) =>
-                                this.handleInput(evt, "exercise_rest")
-                              }
-                            />
-                          </InputControl>
-
-                          <span className={style.new_period_time_filler} />
-                          <button
-                            className={style.add_exe_info_button}
-                            onClick={() =>
-                              this.handleAddInfoClick(
-                                true,
-                                null,
-                                periodIndex,
-                                workoutIndex,
-                                -1
-                              )
-                            }
-                          >
-                            {t("ExercisePlan.add-info")}
-                          </button>
-                          {/*<span className={style.new_period_time_filler} />*/}
-                          {/*<button className={style.add_exe_superset_button}>Super set</button>*/}
-                        </form>
-                      </div>
-                    )}
+                  {true && (
+                    <ExerciseForm
+                      periodIndex={this.state.periodIndex}
+                      workoutIndex={this.state.workoutIndex}
+                      newExeIDSelected={this.state.newExeIDSelected}
+                      exerciseList={this.state.exerciseList}
+                      isEmptySets={this.state.isEmptySets}
+                      exerciseSets={this.state.exerciseSets}
+                      exerciseReps={this.state.exerciseReps}
+                      exerciseRest={this.state.exerciseRest}
+                      isEmptyResistance={this.state.isEmptyResistance}
+                      handleSubmit={this.handleCreateNewExercise}
+                      handleExerciseSelect={this.handleExerciseSelect}
+                      handleExerciseInfoClick={this.handleExerciseInfoClick}
+                      handleInput={this.handleInput}
+                      handleAddInfoClick={this.handleAddInfoClick}
+                    />
+                  )}
 
                   {!this.state.showPeriodForm && !this.state.showWorkoutForm && (
                     <div className={style.button_container}>
@@ -2950,12 +2669,7 @@ class PeriodWorkoutView extends Component {
                       {!this.state.showExerciseForm && (
                         <button
                           className={`${style.add_workout_button}`}
-                          onClick={() =>
-                            this.handleShowExerciseForm(
-                              periodIndex,
-                              workoutIndex
-                            )
-                          }
+                          onClick={() => this.handleShowExerciseForm(periodIndex, workoutIndex)}
                         >
                           {t("ExercisePlan.add-exe")} {workoutIndex + 1}
                         </button>
@@ -3018,9 +2732,7 @@ class PeriodWorkoutView extends Component {
                     <input
                       ref={this.workoutNameRef}
                       className={`${style.new_workout_name} ${
-                        this.state.isNewWorkoutNameEmpty
-                          ? style.input_error_border
-                          : ""
+                        this.state.isNewWorkoutNameEmpty ? style.input_error_border : ""
                       }`}
                       type="text"
                       value={this.state.newWorkoutName}
@@ -3040,9 +2752,7 @@ class PeriodWorkoutView extends Component {
                   >
                     <input
                       className={`${style.new_workout_description} ${
-                        this.state.isNewWorkOutDescEmpty
-                          ? style.input_error_border
-                          : ""
+                        this.state.isNewWorkOutDescEmpty ? style.input_error_border : ""
                       }`}
                       value={this.state.newWorkoutDesc}
                       onChange={(evt) => this.handleInput(evt, "workout_desc")}
@@ -3056,8 +2766,7 @@ class PeriodWorkoutView extends Component {
                 !this.state.showExerciseForm && (
                   <div className={style.button_container}>
                     {this.state.showWorkoutForm &&
-                      this.state.showWorkoutFormForThePeriod ===
-                        periodIndex && (
+                      this.state.showWorkoutFormForThePeriod === periodIndex && (
                         <button
                           className={`${style.add_workout_button}  ${style.save}`}
                           onClick={(e) =>
@@ -3086,12 +2795,8 @@ class PeriodWorkoutView extends Component {
                     )}
                     <span className={style.button_separator} />
                     {this.state.showWorkoutForm &&
-                      this.state.showWorkoutFormForThePeriod ===
-                        periodIndex && (
-                        <button
-                          className={style.cancel}
-                          onClick={() => this.handleWorkoutCancel()}
-                        >
+                      this.state.showWorkoutFormForThePeriod === periodIndex && (
+                        <button className={style.cancel} onClick={() => this.handleWorkoutCancel()}>
                           {t("ExercisePlan.cancel")}
                         </button>
                       )}
@@ -3111,9 +2816,7 @@ class PeriodWorkoutView extends Component {
           style={this.state.showPeriodForm ? {} : { display: "none" }}
         >
           <div className={style.collapse_icon_wrapper_workout}>
-            <h1 className={style.workout_number}>
-              Period {this.state.periodList.length + 1}
-            </h1>
+            <h1 className={style.workout_number}>Period {this.state.periodList.length + 1}</h1>
           </div>
           <form
             onSubmit={(event) => this.handleCreateNewWorkout(event)}
@@ -3157,19 +2860,14 @@ class PeriodWorkoutView extends Component {
             {(this.state.showPeriodForm || this.state.noPeriodsFound) && (
               <button
                 className={`${style.add_period_button} ${style.save}`}
-                onClick={() =>
-                  this.state.noPeriodsFound ? {} : this.handlePeriod(-1, true)
-                }
+                onClick={() => (this.state.noPeriodsFound ? {} : this.handlePeriod(-1, true))}
               >
                 {t("ExercisePlan.save-period")}
               </button>
             )}
 
             {!this.state.showPeriodForm && !this.state.noPeriodsFound && (
-              <button
-                className={style.add_period_button}
-                onClick={() => this.handleShowPeriod()}
-              >
+              <button className={style.add_period_button} onClick={() => this.handleShowPeriod()}>
                 {t("ExercisePlan.add-new-period")}
               </button>
             )}
@@ -3186,14 +2884,9 @@ class PeriodWorkoutView extends Component {
         )}
 
         {this.state.showAddInfoPopup && (
-          <div
-            className={style.add_info_popup}
-            onClick={() => this.handlePopupClose()}
-          >
+          <div className={style.add_info_popup} onClick={() => this.handlePopupClose()}>
             <div className={style.popup} onClick={(e) => e.stopPropagation()}>
-              <div className={style.popup_header}>
-                {t("ExercisePlan.add-exercise-info")}
-              </div>
+              <div className={style.popup_header}>{t("ExercisePlan.add-exercise-info")}</div>
               <div className={style.popup_content}>
                 <InputControl
                   label={t("ExercisePlan.exe-info")}
@@ -3211,21 +2904,11 @@ class PeriodWorkoutView extends Component {
                         : this.state.addExeInfo
                     }
                     onChange={(evt) =>
-                      this.handleUpdate(
-                        evt,
-                        "exercise_info",
-                        -1,
-                        -1,
-                        -1,
-                        "name list on change"
-                      )
+                      this.handleUpdate(evt, "exercise_info", -1, -1, -1, "name list on change")
                     }
                   />
                 </InputControl>
-                <button
-                  className={style.btn_main}
-                  onClick={(e) => this.handleAddInfoBlur(e)}
-                >
+                <button className={style.btn_main} onClick={(e) => this.handleAddInfoBlur(e)}>
                   {t("ExercisePlan.add-exercise-info")}
                 </button>
               </div>
@@ -3234,14 +2917,9 @@ class PeriodWorkoutView extends Component {
         )}
 
         {this.state.showExerciseInfoPopup && (
-          <div
-            className={style.add_info_popup}
-            onClick={() => this.handlePopupClose()}
-          >
+          <div className={style.add_info_popup} onClick={() => this.handlePopupClose()}>
             <div className={style.exe_info_container}>
-              <div className={style.exe_info_header}>
-                {this.state.exerciseInfoObject.name}
-              </div>
+              <div className={style.exe_info_header}>{this.state.exerciseInfoObject.name}</div>
               <div className={style.exe_info_video}>
                 <YouTube
                   videoId={this.getVideoID(this.state.exerciseInfoObject.video)}
